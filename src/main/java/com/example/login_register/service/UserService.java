@@ -18,42 +18,47 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    UserService(UserRepository userRepository , PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    public List<User> getAllUsers() {
-        return this.userRepository.findAll();
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
     public User createUser(User user) {
-        if(this.userRepository.existsByUsername(user.getUsername())){
-            throw  new RuntimeException("Ten da ton tai");
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username đã tồn tại");
+        }
+
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email đã tồn tại");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_USER");
-        return this.userRepository.save(user);
+
+        return userRepository.save(user);
     }
 
     public User updateUser(Long userId, User user) {
+        User curUser = getUserById(userId);
 
-        Optional<User> curUserOpt = userRepository.findUsersById(userId);
-
-        if (curUserOpt.isEmpty()) {
-            throw new RuntimeException("User not found with id: " + userId);
-        }
-
-        User curUser = curUserOpt.get();
-
-        // Cập nhật các field cần thiết
         curUser.setUsername(user.getUsername());
         curUser.setEmail(user.getEmail());
-        curUser.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Chỉ encode password nếu có truyền password mới
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            curUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
 
         return userRepository.save(curUser);
     }
 
-
+    public void deleteUser(Long userId) {
+        User user = getUserById(userId);
+        userRepository.delete(user);
+    }
 }
+

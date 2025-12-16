@@ -18,22 +18,51 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping("/add")
-    public ApiResponse<User> crateUser(@RequestBody User user) {
+    public ApiResponse<User> createUser(@RequestBody User user) {
         ApiResponse<User> response = new ApiResponse<>();
-        response.setResult(this.userService.createUser(user));
+        response.setResult(userService.createUser(user));
         return response;
     }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ApiResponse<List<User>> getAllUsers() {
         ApiResponse<List<User>> response = new ApiResponse<>();
-        response.setResult(this.userService.getAllUsers());
+        response.setResult(userService.getAllUsers());
+        return response;
+    }
+
+
+    @GetMapping("/{id}")
+    public ApiResponse<User> getUserById(@PathVariable Long id) {
+        ApiResponse<User> response = new ApiResponse<>();
+        response.setResult(userService.getUserById(id));
+        return response;
+    }
+
+
+    @PutMapping("/{id}")
+    public ApiResponse<User> updateUser(
+            @PathVariable Long id,
+            @RequestBody User user) {
+
+        ApiResponse<User> response = new ApiResponse<>();
+        response.setResult(userService.updateUser(id, user));
+        return response;
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ApiResponse<String> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setResult("Xóa user thành công");
         return response;
     }
 }
+
